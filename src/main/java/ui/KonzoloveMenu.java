@@ -4,7 +4,6 @@ import databaze.DatabazeStudentu;
 import databaze.IDatabaze;
 import studenti.*;
 
-import java.util.InputMismatchException;
 import java.util.List;
 import java.util.Scanner;
 
@@ -48,7 +47,7 @@ public class KonzoloveMenu {
         if (s == null) {
             System.out.println("Student s ID " + id + " nebyl nalezen.");
         } else {
-            System.out.println("  Dovednost: " + s.vypisDovednost());
+            System.out.println("Dovednost: " + s.vypisDovednost());
         }
     }
 
