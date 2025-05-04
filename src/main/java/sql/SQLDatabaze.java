@@ -1,81 +1,94 @@
 package sql;
 
+import databaze.IDatabaze;
 import studenti.Student;
-import studenti.StudentKyberbezpecnost;
-import studenti.StudentTelekomunikace;
 
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public class SQLDatabaze {
-    private static final String URL = "jdbc:sqlite:studenti.db";
+public class SQLDatabaze implements IDatabaze {
+    private final String URL = "jdbc:sqlite:studenti.db";
 
-    public void ulozStudenty(DatabazeStudentu databaze) {
-        try (Connection conn = DriverManager.getConnection(URL)) {
-            vytvorTabulku(conn);
-
-            try (Statement stmt = conn.createStatement()) {
-                stmt.execute("DELETE FROM studenti");
-            }
-
-            String sql = "INSERT INTO studenti (id, jmeno, prijmeni, rok, prumer, obor) VALUES (?, ?, ?, ?, ?, ?)";
-            try (PreparedStatement ps = conn.prepareStatement(sql)) {
-                for (Student s : databaze.getVsechnyStudenty()) {
-                    ps.setInt(1, s.getID());
-                    ps.setString(2, s.getJmeno());
-                    ps.setString(3, getPrijmeni());
-                    ps.setInt(4, s.getRokNarozeni());
-                    ps.setDouble(5, s.getStudijniPrumer());
-                    ps.setString(6, s instanceof StudentTelekomunikace ? "telekomunikace" : "kyberbezpecnost");
-                    ps.addBatch();
-                }
-                ps.executeBatch();
-            } catch (SQLException e) {
-                throw new RuntimeException(e);
-            }
-        }
-
-        public List<Student> nactiStudenty() {
-            List<Student> seznam = new ArrayList<>();
-            try (Connection conn = DriverManager.getConnection(URL)) {
-                vytvorTabulku(conn);
-                String sql = "SELECT * FROM studenti";
-                try (Statement stmt = conn.createStatement(); ResultSet rs = stmt.executeQuery(sql)) {
-                    while (rs.next()) {
-                        int id = rs.getInt("id");
-                        String jmeno = rs.getString("jmeno");
-                        String prijmeni = rs.getString("prijmeni");
-                        int rok = rs.getInt("rok"):
-                        String obor = rs.getString("obor");
-
-                        Student s;
-                        if (obor.equals("telekomunikace")) {
-                            s = new StudentTelekomunikace(id, jmeno, prijmeni, rok);
-                        } else {
-                            s = new StudentKyberbezpecnost(id, jmeno, prijmeni, rok);
-                        }
-                        seznam.add(s);
-                    }
-                }
-            } catch (SQLException e) {
-                throw new RuntimeException(e);
-            }
-        }
-        return seznam;
+    public SQLDatabaze() {
+        vytvorTabulku();
     }
-    private void vytvorTabulku(Connection conn) throws SQLException {
-        String sql = """
-                CREATE TABLE IF NOT EXISTS studenti (
-                id INTEGER PRIMARY KEY,
-                jmeno TEXT,
-                prijmeni TEXT,
-                rok INTEGER,
-                prumer DOUBLE,
-                obor TEXT
-                )""";
-        try (Statement stmt = conn.createStatement()) {
+
+    private void vytvorTabulku() {
+        String sql = "CREATE TABLE IF NOT EXISTS studenti ("
+                + "id INTEGER PRIMARY KEY,"
+                + "jmeno TEXT,"
+                + "prijmeni TEXT,"
+                + "rokNarozeni INTEGER,"
+                + "znamky TEXT,"
+                + "typ TEXT"
+                + ");";
+
+        try (Connection conn = DriverManager.getConnection(URL);
+             Statement stmt = conn.createStatement()) {
             stmt.execute(sql);
+        } catch (SQLException e) {
+            System.out.println("Chyba při vytváření tabulky: " + e.getMessage());
+        }
+    }
+
+    @Override
+    public List<Student> nactiStudenty() {
+        List<Student> studenti = new ArrayList<>();
+        try (Connection conn = DriverManager.getConnection(URL);
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery("SELECT * FROM studenti")) {
+
+            while (rs.next()) {
+                int id = rs.getInt("id");
+                String jmeno = rs.getString("jmeno");
+                String prijmeni = rs.getString("prijmeni");
+                int rok = rs.getInt("rokNarozeni");
+                String typ = rs.getString("typ");
+                String znamkyText = rs.getString("znamky");
+                List<Integer> znamky = new ArrayList<>();
+                for (String s : znamkyText.split(",")) {
+                    if (!s.isEmpty()) znamky.add(Integer.parseInt(s));
+                }
+
+                Student s;
+                if ("kyber".equals(typ)) {
+                    s = new studenti.StudentKyberbezpecnost(id, jmeno, prijmeni, rok);
+                } else {
+                    s = new studenti.StudentTelekomunikace(id, jmeno, prijmeni, rok);
+                }
+                for (int z : znamky) s.pridejZnamku(z);
+                studenti.add(s);
+            }
+
+        } catch (SQLException e) {
+            System.out.println("Chyba při načítání studentů: " + e.getMessage());
+        }
+        return studenti;
+    }
+
+    @Override
+    public void ulozStudenty(List<Student> studenti) {
+        try (Connection conn = DriverManager.getConnection(URL);
+             Statement stmt = conn.createStatement()) {
+            stmt.executeUpdate("DELETE FROM studenti");
+
+            String sql = "INSERT INTO studenti (id, jmeno, prijmeni, rokNarozeni, znamky, typ) VALUES (?, ?, ?, ?, ?, ?)";
+            try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+                for (Student s : studenti) {
+                    pstmt.setInt(1, s.getId());
+                    pstmt.setString(2, s.getJmeno());
+                    pstmt.setString(3, s.getPrijmeni());
+                    pstmt.setInt(4, s.getRokNarozeni());
+                    pstmt.setString(5, s.getZnamky().toString().replaceAll("[\\[\\]\\s]", ""));
+                    pstmt.setString(6, (s instanceof studenti.StudentKyberbezpecnost) ? "kyber" : "telekom");
+                    pstmt.addBatch();
+                }
+                pstmt.executeBatch();
+            }
+
+        } catch (SQLException e) {
+            System.out.println("Chyba při ukládání studentů: " + e.getMessage());
         }
     }
 }

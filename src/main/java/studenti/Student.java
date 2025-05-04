@@ -1,40 +1,21 @@
 package studenti;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-public abstract class Student {
+public abstract class Student implements Serializable {
     protected int id;
     protected String jmeno;
     protected String prijmeni;
     protected int rokNarozeni;
-    protected List<Integer> znamky;
+    protected List<Integer> znamky = new ArrayList<>();
 
     public Student(int id, String jmeno, String prijmeni, int rokNarozeni) {
         this.id = id;
         this.jmeno = jmeno;
         this.prijmeni = prijmeni;
         this.rokNarozeni = rokNarozeni;
-        znamky = new ArrayList<Integer>();
-    }
-
-    public void pridejZnamku(int znamka) {
-        if (znamka >= 1 && znamka <= 5) {
-            znamky.add(znamka);
-        } else {
-            System.out.println("Neplatná známka. Validní rozmezí je od 1 do 5.");
-        }
-    }
-
-    public double getStudijniPrumer() {
-        if (znamky.isEmpty()) {
-            return 0;
-        }
-        double soucet = 0;
-        for (int z : znamky) {
-            soucet += z;
-        }
-        return soucet / znamky.size();
     }
 
     public int getId() {
@@ -53,14 +34,18 @@ public abstract class Student {
         return rokNarozeni;
     }
 
+    public void pridejZnamku(int znamka) {
+        znamky.add(znamka);
+    }
+
+    public double getStudijniPrumer() {
+        if (znamky.isEmpty()) return 0.0;
+        return znamky.stream().mapToInt(Integer::intValue).average().orElse(0.0);
+    }
+
     public List<Integer> getZnamky() {
-        return new ArrayList<>(znamky);
+        return znamky;
     }
 
-    public abstract void spustDovednost();
-
-    @Override
-    public String toString() {
-        return String.format("ID: %d | Jméno: %s %s | Rok narození: %d | Průměr: %.2f", id, jmeno, prijmeni, rokNarozeni, getStudijniPrumer());
-    }
+    public abstract String vypisDovednost();
 }
