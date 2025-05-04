@@ -53,9 +53,6 @@ public class DatabazeStudentu {
                 .count();
     }
 
-    public void ulozDoDatabaze(IDatabaze sqlDatabaze) {
-        sqlDatabaze.ulozStudenty(vratVsechnyStudenty());
-    }
 
     public void nactiZDatabaze(IDatabaze sqlDatabaze) {
         List<Student> nacteni = sqlDatabaze.nactiStudenty();
