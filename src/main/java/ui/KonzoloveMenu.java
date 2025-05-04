@@ -31,6 +31,9 @@ public class KonzoloveMenu {
                 case 4 -> vypisVsechny();
                 case 5 -> vypisPrumery();
                 case 6 -> vypisPocty();
+                case 7 -> smazatStudenta();
+                case 8 -> ulozitManualne();
+                case 9 -> nacistZeSouboru();
                 case 0 -> System.out.println("Program ukončen.");
                 default -> System.out.println("Neplatná volba.");
             }
@@ -45,6 +48,9 @@ public class KonzoloveMenu {
         System.out.println("4. Vypsat všechny studenty");
         System.out.println("5. Vypsat průměry dle oborů");
         System.out.println("6. Vypsat počty studentů v oborech");
+        System.out.println("7. Smazat studenta podle ID");
+        System.out.println("8. Uložit studenty manuálně");
+        System.out.println("9. Načíst studenty ze souboru/databáze");
         System.out.println("0. Ukončit program");
         System.out.print("Zadejte volbu: ");
     }
@@ -137,5 +143,27 @@ public class KonzoloveMenu {
         long p2 = databaze.pocetStudentuOboru(StudentTelekomunikace.class);
         System.out.println("Počet Kyberbezpečnost: " + p1);
         System.out.println("Počet Telekomunikace: " + p2);
+    }
+
+    private void smazatStudenta() {
+        System.out.print("Zadejte ID studenta k odstranění: ");
+        int id = nactiCislo();
+        Student s = databaze.najdiStudenta(id);
+        if (s == null) {
+            System.out.println("Student s ID " + id + " nebyl nalezen.");
+        } else {
+            databaze.odeberStudenta(id);
+            System.out.println("Student byl úspěšně odstraněn.");
+        }
+    }
+
+    private void ulozitManualne() {
+        uloziste.ulozStudenty(databaze.vratVsechnyStudenty());
+        System.out.println("Data byla uložena.");
+    }
+
+    private void nacistZeSouboru() {
+        databaze.nactiZDatabaze(uloziste);
+        System.out.println("Data byla načtena.");
     }
 }
