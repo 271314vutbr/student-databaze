@@ -34,10 +34,22 @@ public class KonzoloveMenu {
                 case 7 -> smazatStudenta();
                 case 8 -> ulozitManualne();
                 case 9 -> nacistZeSouboru();
+                case 10 -> dovednostStudenta();
                 case 0 -> System.out.println("Program ukončen.");
                 default -> System.out.println("Neplatná volba.");
             }
         } while (volba != 0);
+    }
+
+    private void dovednostStudenta() {
+        System.out.print("Zadejte ID studenta k spusteni dovednosti: ");
+        int id = nactiCislo();
+        Student s = databaze.najdiStudenta(id);
+        if (s == null) {
+            System.out.println("Student s ID " + id + " nebyl nalezen.");
+        } else {
+            System.out.println("  Dovednost: " + s.vypisDovednost());
+        }
     }
 
     private void vypisMenu() {
@@ -51,6 +63,7 @@ public class KonzoloveMenu {
         System.out.println("7. Smazat studenta podle ID");
         System.out.println("8. Uložit studenty manuálně");
         System.out.println("9. Načíst studenty ze souboru/databáze");
+        System.out.println("10. Spustit dovednost studenta");
         System.out.println("0. Ukončit program");
         System.out.print("Zadejte volbu: ");
     }
